@@ -12,11 +12,11 @@ It matters beyond Problem 1 because finding exciting moments is only the first s
 
 The app parses the supplied timestamped scripts and creates only continuous 20–60 second candidates. It scores hook, cliffhanger, context, and duration, then independently audits: plot-payoff wording, whether the clip comes from a later episode, whether the ending appears resolved, and whether there is thin character context. It outputs an exact timestamped card with a `SAFE`, `REVIEW`, or `HIGH RISK` label and reasons for the editor to inspect.
 
-The rules pipeline is reproducible and costs nothing for every show. An optional OpenAI-compatible reviewer can refine the top candidates; invalid or unavailable model output falls back to rules. A human editor remains the publishing authority.
+The rules pipeline is reproducible and costs nothing for every show. Appeal and cold-viewer risk stay separate so an editor can sort by either one. The interface shows nearby context and captures approve/reject/needs-rewrite feedback for export. An optional OpenAI-compatible reviewer can refine the top candidates; invalid or unavailable model output falls back to rules. A human editor remains the publishing authority.
 
 ## Evidence, evaluation, and limits
 
-The included run processes all 50 supplied episodes, evaluates 4,867 valid windows, and exports raw JSON/CSV. Automated tests verify timestamps, duration, parsing, diversity, export, and model-failure fallback. In a real team, I would A/B test audited versus current promos, tracking editor acceptance, first-three-second hold, click-through/install rate, episode-one completion, and viewer complaints about misleading/spoiler-heavy ads.
+The included run processes all 50 supplied episodes, evaluates 4,867 valid windows, and exports raw JSON/CSV. Automated tests verify timestamps, duration, parsing, diversity, export, and model-failure fallback. Before claiming accuracy, I would manually label 25–30 clips and report Precision@5 plus spoiler-safety rate. In a real team, I would A/B test audited versus current promos, tracking editor acceptance, first-three-second hold, click-through/install rate, episode-one completion, and viewer complaints about misleading/spoiler-heavy ads.
 
 The tool can be wrong because a screenplay cannot show performance, music, visual reveals, or irony. It can flag a harmless word such as “wedding,” or miss a spoiler conveyed only by the image. Therefore `SAFE` means “no strong script-level warning,” not “safe without viewing footage.”
 

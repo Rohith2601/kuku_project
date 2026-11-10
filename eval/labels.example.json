@@ -1,0 +1,13 @@
+{
+  "instructions": "Copy this file to labels.local.json (ignored by Git). Review 25–30 exported clips with a second person where possible. Use verdict good/bad and spoiler_verdict safe/spoiler/unclear.",
+  "labels": [
+    {
+      "episode": 1,
+      "start": 0.0,
+      "end": 30.0,
+      "verdict": "good",
+      "spoiler_verdict": "safe",
+      "reason": "Synthetic example only; replace with your private editor review."
+    }
+  ]
+}

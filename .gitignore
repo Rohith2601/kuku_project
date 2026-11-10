@@ -4,4 +4,5 @@ __pycache__/
 .env
 outputs/raw/*.json
 outputs/raw/*.csv
+eval/labels.local.json
 I Married a Broken Soldier. He was a Duke-scripts (2)/

@@ -35,15 +35,13 @@ def _clean(value: str) -> str:
     return re.sub(r"\s+", " ", value)
 
 
-def parse_episode(path: str | Path) -> Episode:
-    path = Path(path)
-    raw = path.read_text(encoding="utf-8", errors="replace")
+def parse_text(raw: str, source_file: str = "uploaded-script.txt") -> Episode:
     episode_match = EPISODE.search(raw)
     if not episode_match:
-        raise ValueError(f"Could not find episode number in {path.name}")
+        raise ValueError(f"Could not find episode number in {source_file}")
     logline = re.search(r"EPISODE LOGLINE:\s*(.+)", raw)
     continuity = re.search(r"CONTINUITY NOTES:\s*(.+)", raw)
-    episode = Episode(int(episode_match.group(1)), _clean(logline.group(1)) if logline else "", _clean(continuity.group(1)) if continuity else "", path.name)
+    episode = Episode(int(episode_match.group(1)), _clean(logline.group(1)) if logline else "", _clean(continuity.group(1)) if continuity else "", source_file)
     scene = 0
     for chunk in re.split(r"(?=\nSCENE\s+\d+)", raw):
         scene_match = SCENE.search(chunk)
@@ -63,6 +61,11 @@ def parse_episode(path: str | Path) -> Episode:
                 episode.beats.append(Beat(episode.number, scene, kind, start, end, text, speaker))
     episode.beats.sort(key=lambda beat: (beat.start, beat.end))
     return episode
+
+
+def parse_episode(path: str | Path) -> Episode:
+    path = Path(path)
+    return parse_text(path.read_text(encoding="utf-8", errors="replace"), path.name)
 
 
 def parse_directory(directory: str | Path) -> list[Episode]:

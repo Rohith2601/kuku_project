@@ -42,6 +42,8 @@ class Promo:
     spoiler_risk: float = 0.0
     cold_viewer_status: str = "REVIEW"
     audit_notes: list[str] = field(default_factory=list)
+    context_before: list[str] = field(default_factory=list)
+    context_after: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

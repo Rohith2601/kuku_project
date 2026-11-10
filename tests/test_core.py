@@ -8,12 +8,13 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.candidates import select_diverse
-from src.parser import format_time, parse_episode, to_seconds
+from src.parser import format_time, parse_episode, parse_text, to_seconds
 from src.pipeline import analyze, export
 from src.schemas import Promo
 from src.reviewer import review
 from src.scoring import audit_cold_viewer_risk
 from src.schemas import Beat
+from src.evaluation import evaluate, promo_key
 
 
 ROOT = Path(__file__).parents[1]
@@ -67,6 +68,15 @@ class PromoFinderTests(unittest.TestCase):
         self.assertGreaterEqual(risk, 40)
         self.assertIn(status, {"REVIEW", "HIGH RISK"})
         self.assertTrue(notes)
+
+    def test_uploaded_text_parser_and_evaluation_metrics(self):
+        raw = "EPISODE NUMBER: Episode 8\n\nSCENE 01\n\n**MAYA:**\nStart: (00:00.00) | End: (00:03.00)\n\"Stop!\"\n\n--- SCRIPT END ---"
+        self.assertEqual(parse_text(raw, "upload.txt").number, 8)
+        promo = Promo(1, 8, 0, 30, 30, 80, "h", "c", "w", {}, [], False)
+        labels = {promo_key(8, 0, 30): {"verdict": "good", "spoiler_verdict": "safe"}}
+        metrics = evaluate([promo], labels)
+        self.assertEqual(metrics["precision_at_k"], 1.0)
+        self.assertEqual(metrics["spoiler_safety_rate"], 1.0)
 
 
 if __name__ == "__main__":

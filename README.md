@@ -13,7 +13,7 @@ py -m pip install -r requirements.txt
 py -m streamlit run app.py
 ```
 
-Set the Script folder to `I Married a Broken Soldier. He was a Duke-scripts (2)` and select **Analyze all episodes**. The full unedited JSON and CSV handoff will be written to `outputs/raw/`.
+Set the Script folder to `I Married a Broken Soldier. He was a Duke-scripts (2)` and select **Audit all episodes**. The full unedited JSON and CSV handoff will be written to `outputs/raw/`. If the confidential input pack is absent—as it will be on a hosted deployment—the included synthetic `demo_data/` example runs by default. You can also upload one or more private `.txt` scripts; uploads are analyzed in memory.
 
 For a reproducible, UI-free full-pack run:
 
@@ -38,7 +38,18 @@ This matters to a growth editor and paid-acquisition team because marketing comp
 1. `src/parser.py` turns every scene’s timestamped dialogue and action into normalized beats.
 2. `src/candidates.py` starts a clip at a potential hook and creates only valid 20–60 second continuous windows.
 3. `src/scoring.py` scores hook cues in the first 3 seconds, cliffhanger cues near the last 6 seconds, standalone context, and duration fit; it separately audits payoff terms, later-series placement, ending resolution, and thin character context.
-4. Overlapping alternatives are suppressed and lower-risk candidates are presented first. Every recommendation is labelled `SAFE`, `REVIEW`, or `HIGH RISK`; this is not an auto-publish verdict.
+4. Overlapping alternatives are suppressed. Promo appeal and cold-viewer risk remain separate signals, and the editor can sort by either one. Every recommendation is labelled `SAFE`, `REVIEW`, or `HIGH RISK`; this is not an auto-publish verdict.
+5. The editor can inspect nearby context, mark a clip approved/rejected/needs rewrite, and download that feedback as CSV.
+
+## Measure quality before claiming accuracy
+
+Copy `eval/labels.example.json` to `eval/labels.local.json` and manually label 25–30 exported clips as `good`/`bad` and `safe`/`spoiler` (ideally with a second reviewer). Then run:
+
+```powershell
+py evaluate.py
+```
+
+It reports `precision_at_k`, overall good rate, and spoiler-safety rate only for reviewed clips. Keep the real label file private alongside the confidential scripts.
 5. If configured, `src/reviewer.py` asks an OpenAI-compatible model to review the top candidates. It validates the result and falls back to the deterministic result on any failure.
 
 ## Folder guide

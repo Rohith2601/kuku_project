@@ -1,0 +1,74 @@
+EPISODE NUMBER: Episode 1
+EPISODE LOGLINE: A courier arrives at a gala with a sealed letter that could expose the mayor.
+CONTINUITY NOTES: Public synthetic demonstration screenplay. It contains no Kuku material.
+
+--- SCRIPT START ---
+
+SCENE 01
+Scene heading: INT. CITY HALL GALA – NIGHT
+Scene start: 00:00.00
+Scene end: 01:05.00
+
+Actions and dialogue:
+
+**ACTION:**
+Start: (00:00.00) | End: (00:03.00)
+A rain-soaked courier bursts through the gala doors, clutching a red sealed letter.
+
+**MAYA (Breathless):**
+Start: (00:03.10) | End: (00:06.00)
+"Mayor Vale, this was hidden in your office."
+
+**MAYOR VALE (Cold):**
+Start: (00:06.10) | End: (00:10.00)
+"You have no idea what you are holding."
+
+**ACTION:**
+Start: (00:10.10) | End: (00:14.00)
+The orchestra stops. Every guest turns toward Maya.
+
+**MAYA (Defiant):**
+Start: (00:14.10) | End: (00:18.00)
+"Then tell them why you wanted it buried."
+
+**MAYOR VALE (Quietly):**
+Start: (00:18.10) | End: (00:22.00)
+"Give me the letter, and walk away."
+
+**ACTION:**
+Start: (00:22.10) | End: (00:27.00)
+Two security guards move between the guests and the exit.
+
+**MAYA (To the room):**
+Start: (00:27.10) | End: (00:31.00)
+"If I do not leave in one minute, open this envelope."
+
+**ACTION:**
+Start: (00:31.10) | End: (00:36.00)
+Maya gives the sealed letter to a young waiter.
+
+**MAYOR VALE (Alarmed):**
+Start: (00:36.10) | End: (00:40.00)
+"Stop her!"
+
+**WAITER (Whispering):**
+Start: (00:40.10) | End: (00:44.00)
+"What is in this?"
+
+**MAYA (Looking at the mayor):**
+Start: (00:44.10) | End: (00:48.00)
+"The reason he is afraid of me."
+
+**ACTION:**
+Start: (00:48.10) | End: (00:52.00)
+The mayor reaches for the envelope as the ballroom lights go out.
+
+**SOUND FX:**
+Start: (00:52.10) | End: (00:54.00)
+A startled gasp echoes in the darkness.
+
+**CAMERA:**
+Start: (00:54.10) | End: (00:55.00)
+Cut to black.
+
+--- SCRIPT END ---

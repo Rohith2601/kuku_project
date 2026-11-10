@@ -9,7 +9,7 @@ import streamlit as st
 from dotenv import load_dotenv
 
 from src.parser import format_time
-from src.pipeline import analyze, export
+from src.pipeline import analyze, analyze_uploads, export
 from src.reviewer import configured
 
 load_dotenv()
@@ -29,14 +29,34 @@ def to_csv(promos) -> str:
         writer.writerow(record)
     return output.getvalue()
 
+
+def decisions_csv() -> str:
+    records = st.session_state.get("decisions", [])
+    if not records:
+        return ""
+    output = StringIO()
+    writer = csv.DictWriter(output, fieldnames=records[0].keys())
+    writer.writeheader()
+    writer.writerows(records)
+    return output.getvalue()
+
+
+def record_decision(promo, decision: str, note: str = "") -> None:
+    key = f"{promo.episode}:{promo.start:.2f}:{promo.end:.2f}"
+    decisions = [item for item in st.session_state.get("decisions", []) if item["clip_id"] != key]
+    decisions.append({"clip_id": key, "episode": promo.episode, "start": format_time(promo.start), "end": format_time(promo.end), "appeal_score": promo.score, "spoiler_risk": promo.spoiler_risk, "audit_status": promo.cold_viewer_status, "editor_decision": decision, "editor_note": note})
+    st.session_state["decisions"] = decisions
+
 st.set_page_config(page_title="Kuku Cold-Viewer Promo Audit", page_icon="🎬", layout="wide")
 st.title("🎬 Kuku Cold-Viewer Promo Audit")
 st.caption("A pre-publish guardrail for promo clips: preserve the hook, avoid obvious spoilers, and stay understandable to a first-time viewer.")
 
 default_data = Path("I Married a Broken Soldier. He was a Duke-scripts (2)")
+demo_data = Path("demo_data")
 with st.sidebar:
     st.header("Run analysis")
-    source = st.text_input("Script folder", str(default_data if default_data.exists() else ""), help="Path may be absolute or relative to this project.")
+    source = st.text_input("Script folder", str(default_data if default_data.exists() else demo_data), help="Optional when uploading files. The public demo is used if no private folder is available.")
+    uploads = st.file_uploader("Upload screenplay .txt files", type=["txt"], accept_multiple_files=True, help="For hosted use, upload your private script files; they are analyzed in memory and are not saved by the app.")
     limit = st.slider("Audit candidates", 5, 50, 30)
     use_reviewer = st.checkbox("Use optional semantic review", value=False, disabled=not configured(), help="Requires PROMO_API_BASE_URL, PROMO_API_KEY and PROMO_MODEL.")
     if not configured():
@@ -46,9 +66,13 @@ with st.sidebar:
 if run:
     try:
         with st.spinner("Parsing scripts, scoring promo windows, and selecting diverse moments..."):
-            episodes, promos, run_info = analyze(source, limit=limit, use_reviewer=use_reviewer)
+            if uploads:
+                episodes, promos, run_info = analyze_uploads(uploads, limit=limit, use_reviewer=use_reviewer)
+            else:
+                episodes, promos, run_info = analyze(source, limit=limit, use_reviewer=use_reviewer)
             export(promos, "outputs/raw")
         st.session_state["promos"], st.session_state["info"] = promos, run_info
+        st.session_state["decisions"] = []
         st.success(f"Audited {run_info['episodes']} episodes and evaluated {run_info['candidates']:,} valid promo windows.")
     except Exception as error:
         st.error(f"Could not analyze scripts: {error}")
@@ -57,15 +81,18 @@ promos = st.session_state.get("promos", [])
 if promos:
     st.divider()
     col1, col2, col3 = st.columns(3)
-    col1.metric("Audited clips", len(promos)); col2.metric("Top hook score", f"{promos[0].score:.1f}/100"); col3.metric("Review mode", st.session_state["info"]["reviewer"])
+    col1.metric("Audited clips", len(promos)); col2.metric("Top promo appeal", f"{promos[0].score:.1f}/100"); col3.metric("Review mode", st.session_state["info"]["reviewer"])
     episodes = sorted({promo.episode for promo in promos})
     selected_episodes = st.multiselect("Episodes", episodes, default=episodes)
     minimum = st.slider("Minimum score", 0, 100, 0)
     statuses = st.multiselect("Cold-viewer status", ["SAFE", "REVIEW", "HIGH RISK"], default=["SAFE", "REVIEW", "HIGH RISK"])
     visible = [promo for promo in promos if promo.episode in selected_episodes and promo.score >= minimum and promo.cold_viewer_status in statuses]
+    sort_by = st.selectbox("Sort clips by", ["Promo appeal", "Lowest spoiler risk"])
+    visible = sorted(visible, key=(lambda promo: promo.spoiler_risk) if sort_by == "Lowest spoiler risk" else (lambda promo: promo.score), reverse=sort_by == "Promo appeal")
     json_data = json.dumps([promo.to_dict() for promo in visible], indent=2)
     st.download_button("Download visible recommendations (JSON)", json_data, "promo_recommendations.json", "application/json")
     st.download_button("Download visible recommendations (CSV)", to_csv(visible), "promo_recommendations.csv", "text/csv")
+    st.download_button("Download editor decisions (CSV)", decisions_csv(), "editor_decisions.csv", "text/csv", disabled=not st.session_state.get("decisions"))
     for promo in visible:
         title = f"#{promo.rank} · {promo.cold_viewer_status} · Episode {promo.episode:02} · {format_time(promo.start)}–{format_time(promo.end)} ({promo.duration:.1f}s) · {promo.score:.1f}"
         with st.expander(title, expanded=promo.rank <= 3):
@@ -76,6 +103,17 @@ if promos:
             st.markdown(f"**Cold-viewer spoiler risk:** {promo.spoiler_risk:.0f}/100")
             for note in promo.audit_notes:
                 st.caption(f"Audit note: {note}")
+            if promo.context_before:
+                st.caption("Context before the proposed clip")
+                for line in promo.context_before: st.write(f"← {line}")
+            if promo.context_after:
+                st.caption("Context after the proposed clip")
+                for line in promo.context_after: st.write(f"→ {line}")
+            decision_note = st.text_input("Editor note", key=f"note-{promo.rank}-{promo.episode}-{promo.start}")
+            approve, reject, rewrite = st.columns(3)
+            approve.button("Approve", key=f"approve-{promo.rank}", on_click=record_decision, args=(promo, "approved", decision_note), use_container_width=True)
+            reject.button("Reject", key=f"reject-{promo.rank}", on_click=record_decision, args=(promo, "rejected", decision_note), use_container_width=True)
+            rewrite.button("Needs rewrite", key=f"rewrite-{promo.rank}", on_click=record_decision, args=(promo, "needs_rewrite", decision_note), use_container_width=True)
             if promo.needs_human_review: st.warning("Low-confidence recommendation — editor review required.")
 else:
     st.info("Choose the supplied script folder and click **Analyze all episodes** to generate editor-ready recommendations.")

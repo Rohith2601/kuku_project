@@ -6,7 +6,7 @@ from dataclasses import asdict
 from pathlib import Path
 
 from .candidates import generate_candidates, select_diverse
-from .parser import parse_directory
+from .parser import parse_directory, parse_text
 from .reviewer import review
 from .scoring import load_rules
 
@@ -14,6 +14,20 @@ from .scoring import load_rules
 def analyze(directory: str | Path, rules_path: str | Path = "config/scoring_rules.json", limit: int = 30, use_reviewer: bool = False):
     rules = load_rules(rules_path)
     episodes = parse_directory(directory)
+    candidates = [promo for episode in episodes for promo in generate_candidates(episode, rules)]
+    promos = select_diverse(candidates, limit)
+    reviewer_name = "heuristic"
+    if use_reviewer:
+        promos, reviewer_name = review(promos)
+        for rank, promo in enumerate(promos, 1):
+            promo.rank = rank
+    return episodes, promos, {"episodes": len(episodes), "candidates": len(candidates), "reviewer": reviewer_name}
+
+
+def analyze_uploads(files, rules_path: str | Path = "config/scoring_rules.json", limit: int = 30, use_reviewer: bool = False):
+    """Analyze Streamlit UploadedFile objects without retaining the private input pack."""
+    rules = load_rules(rules_path)
+    episodes = [parse_text(upload.getvalue().decode("utf-8", errors="replace"), upload.name) for upload in files]
     candidates = [promo for episode in episodes for promo in generate_candidates(episode, rules)]
     promos = select_diverse(candidates, limit)
     reviewer_name = "heuristic"

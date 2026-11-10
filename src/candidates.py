@@ -16,7 +16,9 @@ def generate_candidates(episode: Episode, rules: dict) -> list[Promo]:
         for end in possible_ends[-3:]:
             score, breakdown, hook, cliff, why, evidence = score_window(beats, start, end, rules)
             risk, status, notes = audit_cold_viewer_risk(beats, start, end, episode.number)
-            candidates.append(Promo(0, episode.number, start, end, round(end - start, 2), score, hook, cliff, why, breakdown, evidence, score < rules["min_score_for_editor_review"], spoiler_risk=risk, cold_viewer_status=status, audit_notes=notes))
+            before = [beat.text for beat in beats if start - 10 <= beat.start < start][-2:]
+            after = [beat.text for beat in beats if end < beat.end <= end + 10][:2]
+            candidates.append(Promo(0, episode.number, start, end, round(end - start, 2), score, hook, cliff, why, breakdown, evidence, score < rules["min_score_for_editor_review"], spoiler_risk=risk, cold_viewer_status=status, audit_notes=notes, context_before=before, context_after=after))
     return candidates
 
 
@@ -29,8 +31,8 @@ def _overlap(a: Promo, b: Promo) -> float:
 
 def select_diverse(candidates: list[Promo], limit: int = 30) -> list[Promo]:
     selected: list[Promo] = []
-    # A trailer editor should see high-impact but safer options first; risk remains visible.
-    for candidate in sorted(candidates, key=lambda item: item.score - item.spoiler_risk * 0.22, reverse=True):
+    # Appeal and risk are independent editorial signals; do not hide a compelling risky clip.
+    for candidate in sorted(candidates, key=lambda item: item.score, reverse=True):
         if any(_overlap(candidate, existing) > 0.55 for existing in selected):
             continue
         selected.append(candidate)

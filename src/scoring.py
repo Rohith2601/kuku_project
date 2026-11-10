@@ -13,7 +13,14 @@ def load_rules(path: str | Path = "config/scoring_rules.json") -> dict:
 
 def _hits(text: str, cues: list[str]) -> list[str]:
     lower = text.lower()
-    return [cue for cue in cues if cue in lower]
+    matches: list[str] = []
+    for cue in cues:
+        if cue == "?":
+            if "?" in text:
+                matches.append(cue)
+        elif re.search(rf"(?<!\w){re.escape(cue.lower())}(?!\w)", lower):
+            matches.append(cue)
+    return matches
 
 
 def _scale(hits: list[str], cap: int = 3) -> float:
@@ -31,7 +38,7 @@ def score_window(beats: list[Beat], start: float, end: float, rules: dict) -> tu
     cliff_hits = _hits(final_text, rules["cliffhanger_cues"])
     context_hits = _hits(all_text, rules["context_cues"])
     hook = _scale(hook_hits) + (15 if any(beat.kind == "action" for beat in hook_beats) else 0)
-    cliff = _scale(cliff_hits) + (20 if "?" in final_text else 0)
+    cliff = _scale(cliff_hits) + (12 if "?" in final_text else 0)
     clarity = min(100, _scale(context_hits) + (25 if len(clip) >= 4 else 0) + (15 if any(beat.speaker for beat in clip) else 0))
     duration = end - start
     duration_fit = max(0, 100 - abs(duration - 42) * 2)
@@ -40,7 +47,9 @@ def score_window(beats: list[Beat], start: float, end: float, rules: dict) -> tu
     score = sum(breakdown[key] * weights[{"standalone_clarity": "clarity", "duration_fit": "duration"}.get(key, key)] for key in breakdown)
     hook_line = hook_beats[0].text if hook_beats else "Opening action establishes immediate conflict."
     cliff_line = final_beats[-1].text if final_beats else "The ending leaves the conflict unresolved."
-    why = f"Starts with {', '.join(hook_hits[:2]) or 'an immediate confrontation'} and ends on {', '.join(cliff_hits[:2]) or 'an unresolved beat'}; the conflict is understandable within one clip."
+    opening_reason = f"opening cue(s): {', '.join(hook_hits[:2])}" if hook_hits else ("a visible action beat" if any(beat.kind == "action" for beat in hook_beats) else "an immediate confrontation")
+    ending_reason = f"ending cue(s): {', '.join(cliff_hits[:2])}" if cliff_hits else ("an open question" if "?" in final_text else "an unresolved beat")
+    why = f"The clip opens with {opening_reason} and closes on {ending_reason}; review its surrounding context before publishing."
     evidence = [f"HOOK: {hook_line}", f"CLIFFHANGER: {cliff_line}"]
     return round(score, 1), breakdown, hook_line, cliff_line, why, evidence
 
