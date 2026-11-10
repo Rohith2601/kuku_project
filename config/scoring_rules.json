@@ -1,0 +1,9 @@
+{
+  "hook_cues": ["slap", "betray", "marrying", "murder", "dead", "arrest", "secret", "pregnant", "divorce", "never", "enough", "how dare", "why", "no", "stop", "gun", "knife", "attack", "wedding", "affair", "exposed"],
+  "cliffhanger_cues": ["?", "cut to black", "abrupt", "uncovered", "discovers", "reveal", "secret", "witness", "threat", "or else", "you will regret", "what do you mean", "who are you", "not anymore", "don't"],
+  "context_cues": ["because", "my", "your", "husband", "wife", "father", "mother", "sister", "duke", "wedding"],
+  "weights": {"hook": 0.34, "cliffhanger": 0.38, "clarity": 0.20, "duration": 0.08},
+  "min_duration_seconds": 20,
+  "max_duration_seconds": 60,
+  "min_score_for_editor_review": 58
+}

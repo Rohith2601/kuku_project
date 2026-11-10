@@ -1,0 +1,7 @@
+__pycache__/
+.pytest_cache/
+.streamlit/
+.env
+outputs/raw/*.json
+outputs/raw/*.csv
+I Married a Broken Soldier. He was a Duke-scripts (2)/
