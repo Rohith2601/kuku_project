@@ -15,6 +15,7 @@ from src.reviewer import review
 from src.scoring import audit_cold_viewer_risk
 from src.schemas import Beat
 from src.evaluation import evaluate, promo_key
+from src.brief import build_presentation_brief
 
 
 ROOT = Path(__file__).parents[1]
@@ -77,6 +78,12 @@ class PromoFinderTests(unittest.TestCase):
         metrics = evaluate([promo], labels)
         self.assertEqual(metrics["precision_at_k"], 1.0)
         self.assertEqual(metrics["spoiler_safety_rate"], 1.0)
+
+    def test_presentation_brief_contains_shortlist(self):
+        promo = Promo(1, 8, 0, 30, 30, 80, "Hook line", "Cliff line", "Why", {}, [], False, spoiler_risk=10, cold_viewer_status="SAFE")
+        brief = build_presentation_brief([promo], [])
+        self.assertIn("Episode 08", brief)
+        self.assertIn("Cold-viewer risk: 10/100", brief)
 
 
 if __name__ == "__main__":

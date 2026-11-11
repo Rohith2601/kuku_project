@@ -21,6 +21,18 @@ For a reproducible, UI-free full-pack run:
 py run_analysis.py
 ```
 
+## Showcase flow
+
+The interface is designed for a two-minute presentation:
+
+1. Run the included public demo or upload a private screenplay pack.
+2. Start with **Recommended presentation candidate** to explain the separate appeal and cold-viewer-risk scores.
+3. Open the card, show its audit evidence and the 10-second context window, then record an editor decision.
+4. Open **Review queue** to demonstrate that compelling but risky clips are escalated rather than silently discarded.
+5. Download the **presentation brief** and decision CSV as the concrete editorial handoff.
+
+The theme lives in `.streamlit/config.toml`; it gives the deployed app a consistent dark editorial-review appearance without custom CSS.
+
 Run validation with:
 
 ```powershell
@@ -63,6 +75,8 @@ It reports `precision_at_k`, overall good rate, and spoiler-safety rate only for
 | `outputs/raw/` | Full machine outputs produced locally; do not commit if they contain confidential excerpts. |
 | `outputs/samples/` | Shareable output summaries that omit script text. |
 | `docs/` | Submission-ready solution narrative. |
+| `demo_data/` | Public synthetic screenplay for GitHub and Streamlit Community Cloud demos. |
+| `eval/` | Private manual-evaluation workflow template; real labels are ignored by Git. |
 
 ## Optional model reviewer
 
