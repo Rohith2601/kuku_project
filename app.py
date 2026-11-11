@@ -74,9 +74,10 @@ def status_message(promo) -> tuple[str, str]:
     return "warning", "Promising candidate, but inspect the surrounding footage and the audit notes."
 
 
-def render_promo_card(promo) -> None:
+def render_promo_card(promo, surface: str) -> None:
     decision_map = {item["clip_id"]: item for item in st.session_state.get("decisions", [])}
     current_decision = decision_map.get(promo_id(promo), {}).get("editor_decision", "not reviewed")
+    card_id = f"{surface}-{promo_id(promo)}"
     label = f"Episode {promo.episode:02}  |  {format_time(promo.start)} - {format_time(promo.end)}  |  appeal {promo.score:.1f}  |  risk {promo.spoiler_risk:.0f}"
     with st.expander(label, expanded=promo.rank <= 2):
         left, right = st.columns([2, 1])
@@ -112,15 +113,15 @@ def render_promo_card(promo) -> None:
             else:
                 st.caption("No following scripted beat in the ten-second window.")
 
-        note = st.text_input("Editor note", key=f"note-{promo_id(promo)}", placeholder="Optional: why this should be used or rejected")
+        note = st.text_input("Editor note", key=f"note-{card_id}", placeholder="Optional: why this should be used or rejected")
         approve, reject, rewrite = st.columns(3)
-        if approve.button("Approve", key=f"approve-{promo_id(promo)}", use_container_width=True):
+        if approve.button("Approve", key=f"approve-{card_id}", use_container_width=True):
             record_decision(promo, "approved", note)
             st.success("Saved as approved.")
-        if reject.button("Reject", key=f"reject-{promo_id(promo)}", use_container_width=True):
+        if reject.button("Reject", key=f"reject-{card_id}", use_container_width=True):
             record_decision(promo, "rejected", note)
             st.info("Saved as rejected.")
-        if rewrite.button("Needs rewrite", key=f"rewrite-{promo_id(promo)}", use_container_width=True):
+        if rewrite.button("Needs rewrite", key=f"rewrite-{card_id}", use_container_width=True):
             record_decision(promo, "needs_rewrite", note)
             st.warning("Saved for a new promo cut.")
 
@@ -196,7 +197,7 @@ else:
         visible.sort(key=(lambda promo: promo.spoiler_risk) if sort_by == "Lowest risk" else (lambda promo: promo.score), reverse=sort_by == "Promo appeal")
         st.caption(f"Showing {len(visible)} candidate(s). Appeal and risk are deliberately separate signals.")
         for promo in visible:
-            render_promo_card(promo)
+            render_promo_card(promo, "shortlist")
 
     with risk_tab:
         st.warning("These clips need deliberate editorial attention; they may still be useful, but only after footage review or a revised cut.")
@@ -204,7 +205,7 @@ else:
         review_queue.sort(key=lambda promo: (-promo.spoiler_risk, -promo.score))
         if review_queue:
             for promo in review_queue:
-                render_promo_card(promo)
+                render_promo_card(promo, "review-queue")
         else:
             st.success("No clips were flagged in this run.")
 
